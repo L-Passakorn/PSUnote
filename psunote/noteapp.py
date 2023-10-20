@@ -59,6 +59,7 @@ def notes_create():
 
     return flask.redirect(flask.url_for("index"))
 
+
 @app.route("/notes/edit/<note_id>", methods=["GET", "POST"])
 def note_edit(note_id):
     db = models.db
@@ -95,6 +96,7 @@ def note_edit(note_id):
 
     return flask.render_template("notes-edit.html", form=form, note=note, tagList=thistag)
 
+
 @app.route("/notes/delete/<note_id>", methods=["GET", "POST"])
 def note_delete(note_id):
     db = models.db
@@ -103,6 +105,7 @@ def note_delete(note_id):
     db.session.commit()
 
     return flask.redirect(flask.url_for("index"))
+
 
 @app.route("/tags/<tag_name>")
 def tags_view(tag_name):
@@ -121,6 +124,21 @@ def tags_view(tag_name):
         tag_name=tag_name,
         notes=notes,
     )
+
+
+@app.route("/tags/delete/<tag_name>", methods=["GET", "POST"])
+def tag_delete(tag_name):
+    db = models.db
+    tag = models.Tag.query.filter_by(name=tag_name).first()
+    notes = db.session.execute(
+        db.select(models.Note).where(models.Note.tags.any(name=tag_name))
+    ).scalars()
+    for note in notes:
+        note.tags.remove(tag)
+    db.session.delete(tag)
+    db.session.commit()
+
+    return flask.redirect(flask.url_for("index"))
 
 
 if __name__ == "__main__":

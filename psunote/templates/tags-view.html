@@ -3,6 +3,7 @@
 {% block body %}
 <ul class="nav justify-content-center" style="padding-top: 1em;">
   <li class="nav-item">
+    <a class="btn btn-danger" href="{{ url_for('tag_delete', tag_name = tag_name) }}">Delete this tag</a>
     <a class="btn btn-primary" href="{{ url_for('index') }}">Home</a>
   </li>
   <li class="nav-item">
