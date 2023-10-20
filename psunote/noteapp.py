@@ -51,7 +51,7 @@ def notes_create():
             db.session.add(tag)
 
         note.tags.append(tag)
-        
+
     note.created_date = datetime.now()
     note.updated_date = datetime.now()
     db.session.add(note)
@@ -94,6 +94,15 @@ def note_edit(note_id):
         return flask.redirect(flask.url_for("index"))
 
     return flask.render_template("notes-edit.html", form=form, note=note, tagList=thistag)
+
+@app.route("/notes/delete/<note_id>", methods=["GET", "POST"])
+def note_delete(note_id):
+    db = models.db
+    note = models.Note.query.get(note_id)
+    db.session.delete(note)
+    db.session.commit()
+
+    return flask.redirect(flask.url_for("index"))
 
 @app.route("/tags/<tag_name>")
 def tags_view(tag_name):
