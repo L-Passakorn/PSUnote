@@ -2,7 +2,7 @@ import flask
 
 import models
 import forms
-from sqlalchemy.sql import func
+from datetime import datetime
 
 app = flask.Flask(__name__)
 app.config["SECRET_KEY"] = "This is secret key"
@@ -86,7 +86,7 @@ def note_edit(note_id):
                 note_tags.append(tag)
 
         note.tags = note_tags
-        note.updated_date = func.now()
+        note.updated_date = datetime.now()
         db.session.commit()
         
         return flask.redirect(flask.url_for("index"))
