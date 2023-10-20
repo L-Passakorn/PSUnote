@@ -2,7 +2,7 @@ import flask
 
 import models
 import forms
-
+from sqlalchemy.sql import func
 
 app = flask.Flask(__name__)
 app.config["SECRET_KEY"] = "This is secret key"
@@ -57,6 +57,41 @@ def notes_create():
 
     return flask.redirect(flask.url_for("index"))
 
+@app.route("/notes/edit/<note_id>", methods=["GET", "POST"])
+def note_edit(note_id):
+    db = models.db
+    note = models.Note.query.get(note_id)
+    form = forms.NoteForm(obj=note)
+
+    thistag = ""
+    for tag in note.tags:
+        thistag += tag.name + ","
+
+    if form.validate_on_submit():
+        note.title = form.title.data
+        note.description = form.description.data
+
+        note_tags = []
+        for tag_name in form.tags.data:
+            if tag_name != '':
+                tag = (
+                    db.session.execute(db.select(models.Tag).where(models.Tag.name == tag_name))
+                    .scalars()
+                    .first()
+                )
+                if not tag:
+                    tag = models.Tag(name=tag_name)
+                    db.session.add(tag)
+
+                note_tags.append(tag)
+
+        note.tags = note_tags
+        note.updated_date = func.now()
+        db.session.commit()
+        
+        return flask.redirect(flask.url_for("index"))
+
+    return flask.render_template("notes-edit.html", form=form, note=note, tagList=thistag)
 
 @app.route("/tags/<tag_name>")
 def tags_view(tag_name):
