@@ -51,7 +51,9 @@ def notes_create():
             db.session.add(tag)
 
         note.tags.append(tag)
-
+        
+    note.created_date = datetime.now()
+    note.updated_date = datetime.now()
     db.session.add(note)
     db.session.commit()
 
