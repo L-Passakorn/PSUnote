@@ -101,8 +101,9 @@ def note_edit(note_id):
 def note_delete(note_id):
     db = models.db
     note = models.Note.query.get(note_id)
-    db.session.delete(note)
-    db.session.commit()
+    if note:
+        db.session.delete(note)
+        db.session.commit()
 
     return flask.redirect(flask.url_for("index"))
 
@@ -130,15 +131,14 @@ def tags_view(tag_name):
 def tag_edit(tag_name):
     db = models.db
     new_tag = flask.request.form.get("new_tag")
-    tag = models.Tag.query.filter_by(name=tag_name).first()
-    tag.name = new_tag
-    notes = db.session.execute(
-        db.select(models.Note).where(models.Note.tags.any(id=tag.id))
-    ).scalars()
-
-    # for note in notes:
-    #     note.tags[note.tags.index(tag_name)] = new_tag
-    db.session.commit()
+    if new_tag != tag_name:
+        tag = models.Tag.query.filter_by(name=tag_name).first()
+        tag.name = new_tag
+        notes = db.session.execute(
+            db.select(models.Note).where(models.Note.tags.any(id=tag.id))
+        ).scalars()
+        
+        db.session.commit()
 
     return flask.render_template("tags-view.html",tag_name=tag_name,notes=notes,) and flask.redirect("/tags/"+new_tag)
 
@@ -147,13 +147,14 @@ def tag_edit(tag_name):
 def tag_delete(tag_name):
     db = models.db
     tag = models.Tag.query.filter_by(name=tag_name).first()
-    notes = db.session.execute(
-        db.select(models.Note).where(models.Note.tags.any(name=tag_name))
-    ).scalars()
-    for note in notes:
-        note.tags.remove(tag)
-    db.session.delete(tag)
-    db.session.commit()
+    if tag:
+        notes = db.session.execute(
+            db.select(models.Note).where(models.Note.tags.any(name=tag_name))
+        ).scalars()
+        for note in notes:
+            note.tags.remove(tag)
+        db.session.delete(tag)
+        db.session.commit()
 
     return flask.redirect(flask.url_for("index"))
 
